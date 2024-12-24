@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "articles"
+version = "0.1.0"
+description = ""
+authors = ["johnpapwinter <johnpapahimonas@yahoo.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.6"
+uvicorn = "^0.34.0"
+sqlalchemy = "^2.0.36"
+pydantic-settings = "^2.7.0"
+asyncpg = "^0.30.0"
+psycopg = "^3.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
