@@ -28,14 +28,14 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             authors: List["Author"],
             tags: List["Tag"]
     ) -> Article:
-        async with self.transaction():
+        async with self.db.begin():
             db_obj = self.model(**obj_in_data)
 
             db_obj.authors = authors
             db_obj.tags = tags
 
             self.db.add(db_obj)
-            await self.db.commit()
+            await self.db.flush()
 
             query = select(self.model).options(
                 selectinload(self.model.authors),
@@ -46,7 +46,7 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             return result.scalar_one_or_none()
 
     async def update(self, *, db_obj: Article, obj_in: Union[ArticleUpdate, Dict[str, Any]]) -> Article:
-        async with self.transaction():
+        async with self.db.begin():
             if isinstance(obj_in, dict):
                 update_data = obj_in
             else:
@@ -55,8 +55,9 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
 
             for field in update_data:
                 if field not in ["authors", "tags"] and hasattr(db_obj, field):
-                    setattr(self, field, update_data[field])
+                    setattr(db_obj, field, update_data[field])
 
+            self.db.add(db_obj)
             await self.db.flush()
 
             query = select(self.model).options(

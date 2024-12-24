@@ -29,8 +29,9 @@ class Article(BaseModel):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     abstract: Mapped[str] = mapped_column(Text, nullable=False)
     publication_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
-
+    owner: Mapped["User"] = relationship(back_populates="articles")
     authors: Mapped[List["Author"]] = relationship(
         secondary=article_authors,
         back_populates="articles"
@@ -38,4 +39,8 @@ class Article(BaseModel):
     tags: Mapped[List["Tag"]] = relationship(
         secondary=article_tags,
         back_populates="articles"
+    )
+    comments: Mapped[List["Comment"]] = relationship(
+        back_populates="article",
+        cascade="all, delete-orphan"
     )
