@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 100
 
+    JWT_ISSUER: str = 'ArticlesApp'
+    JWT_SECRET_KEY: str = 'secret'
+    JWT_ALGORITHM: str = 'HS256'
+    JWT_EXPIRATION_MINUTES: int = 60
+
     class Config:
         env_file = '.env'
 
