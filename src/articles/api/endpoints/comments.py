@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
 from src.articles.api.deps import DbSession, CurrentUser
 from src.articles.schemas.comment import Comment, CommentCreate, CommentUpdate

@@ -14,6 +14,8 @@ from src.articles.services.base import BaseService, ModelType
 
 
 class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleRepository]):
+    owner_field = "owner_id"
+
     def __init__(self, db: AsyncSession):
         super().__init__(ArticleRepository, db)
         self.author_repository = AuthorRepository(db)
@@ -30,8 +32,10 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             tags=tags,
         )
 
-    async def update(self, *, obj_id: int, obj: ArticleUpdate) -> Article:
+    async def update(self, *, obj_id: int, obj: ArticleUpdate, user_id: int) -> Article:
         article = await self.repository.get_by_id(obj_id)
+        await self._check_ownership(db_obj=article, user_id=user_id)
+
         if not article:
             raise HTTPException(status_code=404, detail=f"Article {obj_id} not found")
 

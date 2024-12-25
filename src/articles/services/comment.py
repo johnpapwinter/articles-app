@@ -7,6 +7,8 @@ from src.articles.services.base import BaseService
 
 
 class CommentService(BaseService[Comment, CommentCreate, CommentUpdate, CommentRepository]):
+    owner_field = "user_id"
+
     def __init__(self, db: AsyncSession):
         super().__init__(CommentRepository, db)
 

@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type, Optional
+from typing import TypeVar, Generic, Type, Optional, Literal
 
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -14,6 +14,8 @@ RepositoryType = TypeVar('RepositoryType', bound=BaseRepository)
 
 
 class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, RepositoryType]):
+    owner_field: Optional[Literal["owner_id", "user_id"]] = None
+
     def __init__(self, repository: Type[RepositoryType], db: AsyncSession):
         self.repository = repository(db)
 
@@ -26,10 +28,24 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
     async def create(self, *, obj: CreateSchemaType) -> ModelType:
         return await self.repository.create(obj_in=obj)
 
-    async def update(self, *, obj_id: int, obj: UpdateSchemaType) -> ModelType:
+    async def update(self, *, obj_id: int, obj: UpdateSchemaType, user_id: int) -> ModelType:
         db_obj = await self.repository.get_by_id(obj_id)
+        if self.owner_field:
+            await self._check_ownership(db_obj=db_obj, user_id=user_id)
+
         return await self.repository.update(db_obj=db_obj, obj_in=obj)
 
-    async def delete(self, *, obj_id: int) -> ModelType:
+    async def delete(self, *, obj_id: int, user_id: int) -> ModelType:
+        db_obj = await self.repository.get_by_id(obj_id)
+        if self.owner_field:
+            await self._check_ownership(db_obj=db_obj, user_id=user_id)
+
         return await self.repository.delete(obj_id=obj_id)
 
+    async def _check_ownership(self, *, db_obj: ModelType, user_id: int) -> None:
+        if not self.owner_field:
+            return
+
+        obj_owner_id = getattr(db_obj, self.owner_field)
+        if obj_owner_id != user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to modify")
