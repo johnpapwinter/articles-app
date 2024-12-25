@@ -7,6 +7,8 @@ from src.articles.schemas.base import BaseSchema
 
 class CommentBase(BaseSchema):
     content: str
+    article_id: int
+    user_id: int
 
 
 class CommentCreate(CommentBase):
@@ -19,5 +21,3 @@ class CommentUpdate(BaseModel):
 
 class Comment(CommentBase):
     id: int
-    article_id: int
-    user_id: int

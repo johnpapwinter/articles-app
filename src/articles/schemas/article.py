@@ -32,6 +32,5 @@ class Article(ArticleBase):
     id: int
     authors: List[Author]
     tags: List[Tag]
-    owner_id: int
 
 
