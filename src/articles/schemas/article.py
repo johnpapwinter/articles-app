@@ -35,3 +35,7 @@ class Article(ArticleBase):
     owner_id: int
 
 
+class ArticleSearchFilters(BaseModel):
+    title: Optional[str] = None
+    publication_year: Optional[int] = None
+    author: Optional[str] = None

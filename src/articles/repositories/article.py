@@ -1,12 +1,13 @@
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict, Any, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import select, func, extract
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.articles.models import Author
 from src.articles.models.article import Article
 from src.articles.repositories.base import BaseRepository
-from src.articles.schemas.article import ArticleCreate, ArticleUpdate
+from src.articles.schemas.article import ArticleCreate, ArticleUpdate, ArticleSearchFilters
 
 
 class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
@@ -68,6 +69,36 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             result = await self.db.execute(query)
             return result.scalar_one_or_none()
 
+    async def search_with_filters(
+            self,
+            *,
+            search_params: ArticleSearchFilters,
+            page: int = 1,
+            page_size: int = 10
+    ) -> Tuple[List[Article], int]:
+        query = select(self.model).options(
+            selectinload(self.model.authors),
+            selectinload(self.model.tags),
+        )
 
+        if search_params.title:
+            query = query.filter(func.lower(self.model.title).contains(search_params.title.lower()))
+
+        if search_params.publication_year:
+            query = query.filter(extract('year', self.model.publication_date) == search_params.publication_year)
+
+        if search_params.author:
+            query = query.join(self.model.authors).filter(
+                func.lower(Author.name).contains(search_params.author.lower())
+            )
+
+        count_query = select(func.count()).select_from(query.subquery())
+        total = await self.db.execute(count_query)
+
+        query = query.offset((page - 1) * page_size).limit(page_size)
+        result = await self.db.execute(query)
+        items = result.scalars().all()
+
+        return items, total
 
 

@@ -1,3 +1,4 @@
+from math import ceil
 from typing import List
 
 from fastapi import HTTPException
@@ -10,7 +11,8 @@ from src.articles.repositories.article import ArticleRepository
 from src.articles.repositories.author import AuthorRepository
 from src.articles.repositories.base import BaseRepository
 from src.articles.repositories.tag import TagRepository
-from src.articles.schemas.article import ArticleCreate, ArticleUpdate
+from src.articles.schemas.article import ArticleCreate, ArticleUpdate, ArticleSearchFilters
+from src.articles.schemas.base import PaginationSchema
 from src.articles.services.base import BaseService, ModelType
 
 
@@ -49,6 +51,21 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
         updated_data = obj.model_dump(exclude={"author_ids", "tag_ids"}, exclude_unset=True)
 
         return await self.repository.update(db_obj=article, obj_in=updated_data)
+
+    async def search(self, *, search_params: ArticleSearchFilters, page: int = 1, page_size: int = 10) -> PaginationSchema[Article]:
+        items, total_items = await self.repository.search_with_filters(
+            search_params=search_params,
+            page=page,
+            page_size=page_size
+        )
+
+        total_pages = ceil(total_items / page_size)
+        return PaginationSchema(
+            items=items,
+            current_page=page,
+            total_pages=total_pages,
+            total_items=total_items,
+        )
 
     async def _get_entities_by_ids(self, *, ids: Sequence[int], base_repository: BaseRepository, entity_name: str) -> List[ModelType]:
         """Helper method to fetch multiple entities by ids and validate that they exist"""

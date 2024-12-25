@@ -30,11 +30,11 @@ async def get_comment(*, db: DbSession, comment_id: int) -> Any:
 @comments_router.put("/{comment_id}", response_model=Comment)
 async def update_comment(*, db: DbSession, comment_id: int, comment_in: CommentUpdate, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
-    return await comment_service.update(obj_id=comment_id, obj=comment_in)
+    return await comment_service.update(obj_id=comment_id, obj=comment_in, user_id=current_user.id)
 
 
 @comments_router.delete("/{comment_id}", response_model=Comment)
 async def delete_comment(*, db: DbSession, comment_id: int, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
-    return await comment_service.delete(obj_id=comment_id)
+    return await comment_service.delete(obj_id=comment_id, user_id=current_user.id)
 
