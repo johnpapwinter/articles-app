@@ -1,8 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.articles.api.deps import DbSession
+from src.articles.auth.deps import get_current_user
+from src.articles.models import User
 from src.articles.schemas.article import Article, ArticleCreate, ArticleUpdate
 from src.articles.services.article import ArticleService
 
@@ -17,7 +19,8 @@ async def create_article(*, db: DbSession, article_in: ArticleCreate) -> Any:
 
 
 @article_router.get("/{article_id}", response_model=Article)
-async def get_article(*, db: DbSession, article_id: int) -> Any:
+async def get_article(*, db: DbSession, article_id: int, current_user: User = Depends(get_current_user)) -> Any:
+    print(current_user.username)
     article_service = ArticleService(db)
     return await article_service.get_by_id(article_id)
 

@@ -12,6 +12,7 @@ class ArticleBase(BaseSchema):
     title: str
     abstract: str
     publication_date: datetime
+    owner_id: int
 
 
 class ArticleCreate(ArticleBase):

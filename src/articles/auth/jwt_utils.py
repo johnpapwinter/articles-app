@@ -11,10 +11,10 @@ def create_access_token(user_id: int) -> str:
     """Create JWT access token for specific user"""
     now = datetime.now(UTC)
     payload = {
-        "sub": user_id,
-        "issuer": settings.JWT_ISSUER,
-        "iat": now,
-        "exp": now + timedelta(minutes=settings.JWT_EXPIRATION_MINUTES),
+        "sub": str(user_id),
+        "iss": settings.JWT_ISSUER,
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=settings.JWT_EXPIRATION_MINUTES)).timestamp()),
     }
 
     return jwt.encode(
@@ -27,10 +27,13 @@ def create_access_token(user_id: int) -> str:
 def verify_token(token: str) -> TokenPayload:
     """Verify JWT access token and return payload"""
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        token_data = TokenPayload(**payload)
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM], issuer=settings.JWT_ISSUER
+        )
+
+        token_data = TokenPayload(sub=int(payload["sub"]))
         return token_data
-    except (JWTError, ValidationError):
-        raise ValueError("Invalid token")
+    except (JWTError, ValidationError) as e:
+        raise ValueError(f"Invalid token: {str(e)}")
 
 
