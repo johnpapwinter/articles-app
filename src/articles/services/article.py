@@ -34,6 +34,9 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
 
     async def update(self, *, obj_id: int, obj: ArticleUpdate, user_id: int) -> Article:
         article = await self.repository.get_by_id(obj_id)
+        if not article:
+            raise HTTPException(status_code=404, detail=f"Article {obj_id} not found")
+
         await self._check_ownership(db_obj=article, user_id=user_id)
 
         if not article:

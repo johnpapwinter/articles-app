@@ -12,6 +12,14 @@ article_router = APIRouter()
 @article_router.post("", response_model=Article)
 async def create_article(*, db: DbSession, article_in: ArticleCreate, current_user: CurrentUser) -> Any:
     article_service = ArticleService(db)
+    article_in = ArticleCreate(
+        title=article_in.title,
+        abstract=article_in.abstract,
+        publication_date=article_in.publication_date,
+        author_ids=article_in.author_ids,
+        tag_ids=article_in.tag_ids,
+        owner_id=current_user.id,
+    )
     article = await article_service.create(obj=article_in)
     return article
 
