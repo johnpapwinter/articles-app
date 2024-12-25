@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.articles.core.error_messages import ErrorMessages
 from src.articles.models.article import Article
 from src.articles.repositories.article import ArticleRepository
 from src.articles.repositories.author import AuthorRepository
@@ -35,12 +36,9 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
     async def update(self, *, obj_id: int, obj: ArticleUpdate, user_id: int) -> Article:
         article = await self.repository.get_by_id(obj_id)
         if not article:
-            raise HTTPException(status_code=404, detail=f"Article {obj_id} not found")
+            raise HTTPException(status_code=404, detail=ErrorMessages.NOT_FOUND.value)
 
         await self._check_ownership(db_obj=article, user_id=user_id)
-
-        if not article:
-            raise HTTPException(status_code=404, detail=f"Article {obj_id} not found")
 
         if obj.author_ids is not None:
             article.authors = await self._get_authors_by_ids(obj.author_ids)
@@ -58,7 +56,7 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
         for entity_id in ids:
             entity = await base_repository.get_by_id(entity_id)
             if not entity:
-                raise HTTPException(status_code=404, detail=f"{entity_name} {entity_id} not found")
+                raise HTTPException(status_code=404, detail=ErrorMessages.NOT_FOUND.value)
             entities.append(entity)
         return entities
 

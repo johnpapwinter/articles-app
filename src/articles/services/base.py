@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.articles.core.error_messages import ErrorMessages
 from src.articles.db.base import Base
 from src.articles.repositories.base import BaseRepository
 
@@ -22,7 +23,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
     async def get_by_id(self, obj_id: int) -> Optional[ModelType]:
         obj = await self.repository.get_by_id(obj_id)
         if not obj:
-            raise HTTPException(status_code=404, detail="Not found")
+            raise HTTPException(status_code=404, detail=ErrorMessages.NOT_FOUND.value)
         return obj
 
     async def create(self, *, obj: CreateSchemaType) -> ModelType:
@@ -48,4 +49,4 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
 
         obj_owner_id = getattr(db_obj, self.owner_field)
         if obj_owner_id != user_id:
-            raise HTTPException(status_code=403, detail="Not authorized to modify")
+            raise HTTPException(status_code=403, detail=ErrorMessages.NOT_AUTHORIZED_TO_MODIFY.value)
