@@ -19,6 +19,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
 
     def __init__(self, repository: Type[RepositoryType], db: AsyncSession):
         self.repository = repository(db)
+        self.db = db
 
     async def get_by_id(self, obj_id: int) -> Optional[ModelType]:
         obj = await self.repository.get_by_id(obj_id)
@@ -27,21 +28,24 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
         return obj
 
     async def create(self, *, obj: CreateSchemaType) -> ModelType:
-        return await self.repository.create(obj_in=obj)
+        async with self.db.begin_nested():
+            return await self.repository.create(obj_in=obj)
 
     async def update(self, *, obj_id: int, obj: UpdateSchemaType, user_id: int) -> ModelType:
-        db_obj = await self.repository.get_by_id(obj_id)
-        if self.owner_field:
-            await self._check_ownership(db_obj=db_obj, user_id=user_id)
+        async with self.db.begin_nested():
+            db_obj = await self.repository.get_by_id(obj_id)
+            if self.owner_field:
+                await self._check_ownership(db_obj=db_obj, user_id=user_id)
 
-        return await self.repository.update(db_obj=db_obj, obj_in=obj)
+            return await self.repository.update(db_obj=db_obj, obj_in=obj)
 
     async def delete(self, *, obj_id: int, user_id: int) -> ModelType:
-        db_obj = await self.repository.get_by_id(obj_id)
-        if self.owner_field:
-            await self._check_ownership(db_obj=db_obj, user_id=user_id)
+        async with self.db.begin_nested():
+            db_obj = await self.repository.get_by_id(obj_id)
+            if self.owner_field:
+                await self._check_ownership(db_obj=db_obj, user_id=user_id)
 
-        return await self.repository.delete(obj_id=obj_id)
+            return await self.repository.delete(obj_id=obj_id)
 
     async def _check_ownership(self, *, db_obj: ModelType, user_id: int) -> None:
         if not self.owner_field:

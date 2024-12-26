@@ -2,10 +2,11 @@ from typing import Optional
 
 from fastapi import Header, HTTPException, Depends
 from jose import JWTError
+from sqlalchemy.orm import Session
 
-from src.articles.api.deps import DbSession
 from src.articles.auth.jwt_utils import verify_token
 from src.articles.core.error_messages import ErrorMessages
+from src.articles.db import get_db
 from src.articles.models import User
 from src.articles.services.user import UserService
 
@@ -23,7 +24,7 @@ async def get_token_from_header(authorization: Optional[str] = Header(None)) -> 
         raise HTTPException(status_code=401, detail=ErrorMessages.NOT_AUTHORIZED.value)
 
 
-async def get_current_user(db: DbSession, token: str = Depends(get_token_from_header)) -> User:
+async def get_current_user(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)) -> User:
     try:
         payload = verify_token(token)
         user_id: int = payload.sub

@@ -19,12 +19,11 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
 
     async def create_user(self, *, obj_in: UserCreate) -> User:
         """Special create method for users to handle transaction properly"""
-        async with self.db.begin():
-            db_obj = self.model(**obj_in.model_dump())
-            self.db.add(db_obj)
-            await self.db.flush()
+        db_obj = self.model(**obj_in.model_dump())
+        self.db.add(db_obj)
+        await self.db.flush()
 
-            query = select(self.model).where(self.model.id == db_obj.id)
-            result = await self.db.execute(query)
-            return result.scalar_one()
+        query = select(self.model).where(self.model.id == db_obj.id)
+        result = await self.db.execute(query)
+        return result.scalar_one()
 

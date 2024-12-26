@@ -11,8 +11,9 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorReposi
         super().__init__(AuthorRepository, db)
 
     async def create(self, *, obj: AuthorCreate) -> Author:
-        existing_author = await self.repository.get_by_name(obj.name)
-        if existing_author:
-            return existing_author
-        return await super().create(obj=obj)
+        async with self.db.begin_nested():
+            existing_author = await self.repository.get_by_name(obj.name)
+            if existing_author:
+                return existing_author
+            return await super().create(obj=obj)
 

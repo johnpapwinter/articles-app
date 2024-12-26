@@ -14,14 +14,15 @@ class UserService(BaseService[User, UserCreate, UserUpdate, UserRepository]):
         super().__init__(UserRepository, db)
 
     async def create(self, *, obj: UserCreate) -> User:
-        existing_user = await self.repository.get_by_username(username=obj.username)
-        if existing_user:
-            raise HTTPException(status_code=400, detail=ErrorMessages.USERNAME_ALREADY_EXISTS.value)
+        async with self.db.begin_nested():
+            existing_user = await self.repository.get_by_username(username=obj.username)
+            if existing_user:
+                raise HTTPException(status_code=400, detail=ErrorMessages.USERNAME_ALREADY_EXISTS.value)
 
-        hashed_password = get_password_hash(obj.password)
-        user_data = UserCreate(username=obj.username, password=hashed_password)
+            hashed_password = get_password_hash(obj.password)
+            user_data = UserCreate(username=obj.username, password=hashed_password)
 
-        return await self.repository.create_user(obj_in=user_data)
+            return await self.repository.create_user(obj_in=user_data)
 
     async def authenticate(self, *, username: str, password: str) -> User | None:
         """Authenticate a user by username and password."""

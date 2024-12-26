@@ -28,7 +28,7 @@ class ArticleUpdate(BaseModel):
     tag_ids: Optional[List[int]] = None
 
 
-class Article(ArticleBase):
+class ArticleSchema(ArticleBase):
     id: int
     authors: List[Author]
     tags: List[Tag]

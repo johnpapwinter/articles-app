@@ -11,8 +11,9 @@ class TagService(BaseService[Tag, TagCreate, TagUpdate, TagRepository]):
         super().__init__(TagRepository, db)
 
     async def create(self, *, obj: TagCreate) -> Tag:
-        existing_tag = await self.repository.get_by_name(obj.name)
-        if existing_tag:
-            return existing_tag
-        return await super().create(obj=obj)
+        async with self.db.begin_nested():
+            existing_tag = await self.repository.get_by_name(obj.name)
+            if existing_tag:
+                return existing_tag
+            return await super().create(obj=obj)
 

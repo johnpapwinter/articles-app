@@ -17,6 +17,8 @@ class BaseSchema(BaseModel):
 
 
 class PaginationSchema(BaseSchema, Generic[T]):
+    model_config = ConfigDict(from_attributes=True)
+
     items: List[T]
     current_page: int
     total_pages: int

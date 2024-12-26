@@ -3,14 +3,14 @@ from typing import Any
 from fastapi import APIRouter, Query
 
 from src.articles.api.deps import DbSession, CurrentUser
-from src.articles.schemas.article import Article, ArticleCreate, ArticleUpdate, ArticleSearchFilters
+from src.articles.schemas.article import ArticleSchema, ArticleCreate, ArticleUpdate, ArticleSearchFilters
 from src.articles.schemas.base import PaginationSchema
 from src.articles.services.article import ArticleService
 
 article_router = APIRouter()
 
 
-@article_router.post("", response_model=Article)
+@article_router.post("", response_model=ArticleSchema)
 async def create_article(*, db: DbSession, article_in: ArticleCreate, current_user: CurrentUser) -> Any:
     article_service = ArticleService(db)
     article_in = ArticleCreate(
@@ -25,25 +25,25 @@ async def create_article(*, db: DbSession, article_in: ArticleCreate, current_us
     return article
 
 
-@article_router.get("/{article_id}", response_model=Article)
+@article_router.get("/{article_id}", response_model=ArticleSchema)
 async def get_article(*, db: DbSession, article_id: int) -> Any:
     article_service = ArticleService(db)
     return await article_service.get_by_id(article_id)
 
 
-@article_router.put("/{article_id}", response_model=Article)
+@article_router.put("/{article_id}", response_model=ArticleSchema)
 async def update_article(*, db: DbSession, article_id: int, article: ArticleUpdate, current_user: CurrentUser) -> Any:
     article_service = ArticleService(db)
     return await article_service.update(obj_id=article_id, obj=article, user_id=current_user.id)
 
 
-@article_router.delete("/{article_id}", response_model=Article)
+@article_router.delete("/{article_id}", response_model=ArticleSchema)
 async def delete_article(*, db: DbSession, article_id: int, current_user: CurrentUser) -> Any:
     article_service = ArticleService(db)
     return await article_service.delete(obj_id=article_id, user_id=current_user.id)
 
 
-@article_router.post("/search", response_model=PaginationSchema[Article])
+@article_router.post("/search", response_model=PaginationSchema[ArticleSchema])
 async def search_articles(
         *,
         db: DbSession,

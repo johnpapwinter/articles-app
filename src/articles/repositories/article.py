@@ -29,45 +29,42 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             authors: List["Author"],
             tags: List["Tag"]
     ) -> Article:
-        async with self.db.begin():
-            db_obj = self.model(**obj_in_data)
+        db_obj = self.model(**obj_in_data)
 
-            db_obj.authors = authors
-            db_obj.tags = tags
+        db_obj.authors = authors
+        db_obj.tags = tags
 
-            self.db.add(db_obj)
-            await self.db.flush()
+        self.db.add(db_obj)
+        await self.db.flush()
 
-            query = select(self.model).options(
-                selectinload(self.model.authors),
-                selectinload(self.model.tags),
-            ).where(self.model.id == db_obj.id)
+        query = select(self.model).options(
+            selectinload(self.model.authors),
+            selectinload(self.model.tags),
+        ).where(self.model.id == db_obj.id)
 
-            result = await self.db.execute(query)
-            return result.scalar_one_or_none()
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
 
     async def update(self, *, db_obj: Article, obj_in: Union[ArticleUpdate, Dict[str, Any]]) -> Article:
-        async with self.db.begin():
-            if isinstance(obj_in, dict):
-                update_data = obj_in
-            else:
-                update_data = obj_in.model_dump(exclude_unset=True)
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
 
+        for field in update_data:
+            if field not in ["authors", "tags"] and hasattr(db_obj, field):
+                setattr(db_obj, field, update_data[field])
 
-            for field in update_data:
-                if field not in ["authors", "tags"] and hasattr(db_obj, field):
-                    setattr(db_obj, field, update_data[field])
+        self.db.add(db_obj)
+        await self.db.flush()
 
-            self.db.add(db_obj)
-            await self.db.flush()
+        query = select(self.model).options(
+            selectinload(self.model.authors),
+            selectinload(self.model.tags),
+        ).where(self.model.id == db_obj.id)
 
-            query = select(self.model).options(
-                selectinload(self.model.authors),
-                selectinload(self.model.tags),
-            ).where(self.model.id == db_obj.id)
-
-            result = await self.db.execute(query)
-            return result.scalar_one_or_none()
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
 
     async def search_with_filters(
             self,

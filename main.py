@@ -14,7 +14,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.middleware("http")(logging_middleware)
+# app.middleware("http")(logging_middleware)
 
 app.include_router(api_router)
 
