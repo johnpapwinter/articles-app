@@ -1,11 +1,23 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
+from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from src.articles.api import logging_middleware
 from src.articles.api.router import api_router
+from src.articles.core.dependencies import get_elasticsearch_client
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    es_client: AsyncElasticsearch = get_elasticsearch_client()
+    yield
+    await es_client.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

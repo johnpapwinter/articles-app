@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = 'HS256'
     JWT_EXPIRATION_MINUTES: int = 60
 
+    ELASTICSEARCH_HOST: str = 'http://localhost:9200'
+    ELASTICSEARCH_USER: str | None = None
+    ELASTICSEARCH_PASSWORD: str | None = None
+    ELASTICSEARCH_VERIFY_CERTS: bool = False
+
     class Config:
         env_file = '.env'
 
