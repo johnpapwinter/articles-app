@@ -10,6 +10,7 @@ from src.articles.models.article import Article
 from src.articles.repositories.article import ArticleRepository
 from src.articles.repositories.author import AuthorRepository
 from src.articles.repositories.base import BaseRepository
+from src.articles.repositories.search_repository import ArticleSearchRepository
 from src.articles.repositories.tag import TagRepository
 from src.articles.schemas.article import ArticleCreate, ArticleUpdate, ArticleSearchFilters, ArticleSchema
 from src.articles.schemas.base import PaginationSchema
@@ -19,8 +20,9 @@ from src.articles.services.base import BaseService, ModelType
 class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleRepository]):
     owner_field = "owner_id"
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, search_repository: ArticleSearchRepository):
         super().__init__(ArticleRepository, db)
+        self.search_repository = search_repository
         self.author_repository = AuthorRepository(db)
         self.tag_repository = TagRepository(db)
 
@@ -30,11 +32,21 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             tags = await self._get_tags_by_ids(obj.tag_ids)
 
             article_data = obj.model_dump(exclude={"author_ids", "tag_ids"})
-            return await self.repository.create_with_relationships(
+            article = await self.repository.create_with_relationships(
                 obj_in_data=article_data,
                 authors=authors,
                 tags=tags,
             )
+            await self.search_repository.index_article(article)
+            indexed_doc = await self.search_repository.verify_article_indexed(article.id)
+            if indexed_doc:
+                print(f"Article {article.id} indexed")
+                print(f"Indexed title: {indexed_doc['title']}")
+            else:
+                print(f"Article {article.id} not indexed")
+
+            return article
+
 
     async def update(self, *, obj_id: int, obj: ArticleUpdate, user_id: int) -> Article:
         async with self.db.begin_nested():
@@ -86,4 +98,9 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
     async def _get_tags_by_ids(self, tag_ids: Sequence[int]) -> List[ModelType]:
         """Helper method to fetch tags by their ids"""
         return await self._get_entities_by_ids(ids=tag_ids, base_repository=self.tag_repository)
+
+    async def test_search(self, query: str, fuzzy: bool = True) -> None:
+        articles_ids = await self.search_repository.search_articles(query=query, fuzzy=fuzzy)
+        print(f"{article_id}\n" for article_id in articles_ids)
+
 
