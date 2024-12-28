@@ -8,12 +8,14 @@ from src.articles.models import Author
 from src.articles.models.article import Article
 from src.articles.repositories.base import BaseRepository
 from src.articles.schemas.article import ArticleCreate, ArticleUpdate, ArticleSearchFilters
+from src.articles.utils.decorators import log_database_operations
 
 
 class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
     def __init__(self, db: AsyncSession):
         super().__init__(Article, db)
 
+    @log_database_operations
     async def get_by_id(self, obj_id: int) -> Optional[Article]:
         """
         get an article by id from the database
@@ -27,6 +29,7 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    @log_database_operations
     async def create_with_relationships(
             self,
             *,
@@ -57,6 +60,7 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    @log_database_operations
     async def update(self, *, db_obj: Article, obj_in: Union[ArticleUpdate, Dict[str, Any]]) -> Article:
         """
         update an article from the database
@@ -84,6 +88,7 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    @log_database_operations
     async def search_with_filters(
             self,
             *,

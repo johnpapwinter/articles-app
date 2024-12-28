@@ -15,6 +15,9 @@ from src.articles.repositories.tag import TagRepository
 from src.articles.schemas.article import ArticleCreate, ArticleUpdate, ArticleSearchFilters, ArticleSchema
 from src.articles.schemas.base import PaginationSchema
 from src.articles.services.base import BaseService, ModelType
+from src.articles.utils.logging import setup_logging
+
+logger = setup_logging(__name__)
 
 
 class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleRepository]):
@@ -45,9 +48,9 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             await self.search_repository.index_article(article)
             indexed_doc = await self.search_repository.verify_article_indexed(article.id)
             if indexed_doc:
-                print(f"Article {article.id} indexed")
+                logger.info(f"Article {article.id} was indexed")
             else:
-                print(f"Article {article.id} not indexed")
+                logger.info(f"Article {article.id} was not indexed")
 
             return article
 

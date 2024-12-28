@@ -1,7 +1,13 @@
+import functools
+import time
 from functools import wraps
 from typing import Type, Any, Dict, Callable
 
 from pydantic import BaseModel
+
+from src.articles.utils.logging import setup_logging
+
+logger = setup_logging("database_operations")
 
 
 def endpoint_decorator(
@@ -37,4 +43,39 @@ def endpoint_decorator(
 
         return wrapper
     return decorator
+
+
+def log_database_operations(func: Callable) -> Callable:
+    """Decorator to log database operations"""
+    @functools.wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        model_name = self.model.__name__ if hasattr(self, "model") else 'Unknown'
+        operation = func.__name__
+
+        start_time = time.perf_counter()
+
+        try:
+            result = await func(self, *args, **kwargs)
+            execution_time = (time.perf_counter() - start_time) * 1000
+
+            logger.info(
+                f"Database Operation: {operation} | "
+                f"Model Name: {model_name} | "
+                f"Duration: {execution_time:.2f}ms"
+            )
+
+            return result
+
+        except Exception as e:
+            execution_time = (time.perf_counter() - start_time) * 1000
+
+            logger.error(
+                f"Database Operation: {operation} | "
+                f"Model Name: {model_name} | "
+                f"Duration: {execution_time:.2f}ms"
+            )
+
+            raise
+
+    return wrapper
 

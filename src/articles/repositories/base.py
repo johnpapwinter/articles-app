@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.articles.db.base import Base
+from src.articles.utils.decorators import log_database_operations
 
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
@@ -16,6 +17,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
         self.db = db
 
+    @log_database_operations
     async def get_by_id(self, obj_id: Any) -> Optional[ModelType]:
         """
         get a database object by its id
@@ -26,6 +28,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    @log_database_operations
     async def create(self, *, obj_in: CreateSchemaType) -> ModelType:
         """
         create a new database object
@@ -39,6 +42,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await self.db.refresh(db_obj)
         return db_obj
 
+    @log_database_operations
     async def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType | Dict[str, Any]) -> ModelType:
         """
         update an existing database object
@@ -61,6 +65,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await self.db.refresh(db_obj)
         return db_obj
 
+    @log_database_operations
     async def delete(self, *, obj_id: int) -> ModelType:
         """
         delete a database object by its id
@@ -73,6 +78,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await self.db.flush()
         return obj
 
+    @log_database_operations
     async def get_by_name(self, name: str) -> Optional[ModelType]:
         """
         get a database object by its name (primarily used for the author and tag models)
