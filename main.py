@@ -5,7 +5,6 @@ from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from src.articles.api import logging_middleware
 from src.articles.api.logging_middleware import logger_middleware
 from src.articles.api.router import api_router
 from src.articles.core.dependencies import get_elasticsearch_client
