@@ -15,6 +15,11 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
         super().__init__(Article, db)
 
     async def get_by_id(self, obj_id: int) -> Optional[Article]:
+        """
+        get an article by id from the database
+        :param obj_id: the article id to get
+        :return: a found article or None
+        """
         query = select(self.model).options(
             selectinload(self.model.authors),
             selectinload(self.model.tags),
@@ -29,6 +34,13 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             authors: List["Author"],
             tags: List["Tag"]
     ) -> Article:
+        """
+        create an article with relationships with authors and tags
+        :param obj_in_data: the article data to be created
+        :param authors: the authors associated with the article
+        :param tags: the tags associated with the article
+        :return: the created article
+        """
         db_obj = self.model(**obj_in_data)
 
         db_obj.authors = authors
@@ -46,6 +58,12 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
         return result.scalar_one_or_none()
 
     async def update(self, *, db_obj: Article, obj_in: Union[ArticleUpdate, Dict[str, Any]]) -> Article:
+        """
+        update an article from the database
+        :param db_obj: the article as it currently is in the database
+        :param obj_in: the updated article data
+        :return: the updated article
+        """
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -70,13 +88,25 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             self,
             *,
             search_params: ArticleSearchFilters,
+            elastic_ids: Optional[List[int]] = None,
             page: int = 1,
             page_size: int = 10
     ) -> Tuple[List[Article], int]:
+        """
+        search the article with the given filters
+        :param search_params: the filters to search for
+        :param elastic_ids: the ids found in the text search in elasticsearch
+        :param page: the page number of the result
+        :param page_size: the size of the page of the result
+        :return: a tuple of a list of found articles and the page number
+        """
         query = select(self.model).options(
             selectinload(self.model.authors),
             selectinload(self.model.tags),
         )
+
+        if elastic_ids is not None:
+            query = query.filter(self.model.id.in_(elastic_ids))
 
         if search_params.title:
             query = query.filter(func.lower(self.model.title).contains(search_params.title.lower()))
@@ -90,7 +120,9 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
             )
 
         count_query = select(func.count()).select_from(query.subquery())
-        total = await self.db.execute(count_query)
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar_one()
+
 
         query = query.offset((page - 1) * page_size).limit(page_size)
         result = await self.db.execute(query)

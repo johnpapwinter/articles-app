@@ -27,6 +27,11 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
         self.tag_repository = TagRepository(db)
 
     async def create(self, *, obj: ArticleCreate) -> Article:
+        """
+        create a new article
+        :param obj: the article to be created
+        :return: the created article
+        """
         async with self.db.begin_nested():
             authors = await self._get_authors_by_ids(obj.author_ids)
             tags = await self._get_tags_by_ids(obj.tag_ids)
@@ -41,7 +46,6 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             indexed_doc = await self.search_repository.verify_article_indexed(article.id)
             if indexed_doc:
                 print(f"Article {article.id} indexed")
-                print(f"Indexed title: {indexed_doc['title']}")
             else:
                 print(f"Article {article.id} not indexed")
 
@@ -49,6 +53,13 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
 
 
     async def update(self, *, obj_id: int, obj: ArticleUpdate, user_id: int) -> Article:
+        """
+        update an article
+        :param obj_id: the article id
+        :param obj: the payload containing the updated data
+        :param user_id: the user attempting to update the article
+        :return: the updated article
+        """
         async with self.db.begin_nested():
             article = await self.repository.get_by_id(obj_id)
             if not article:
@@ -67,8 +78,25 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             return await self.repository.update(db_obj=article, obj_in=updated_data)
 
     async def search(self, *, search_params: ArticleSearchFilters, page: int = 1, page_size: int = 10) -> PaginationSchema[ArticleSchema]:
+        """
+        Dynamic search based on parameters against the articles stored in the database.
+        :param search_params: pydantic object containing the parameters to search for.
+        :param page: the page number
+        :param page_size: the items per page
+        :return: a paginated result of items
+        """
+        elastic_ids = None
+        if search_params.abstract_search:
+            elastic_ids = await self.search_repository.search_articles(
+                query=search_params.abstract_search,
+                fuzzy=True,
+                size=1000
+            )
+
+
         items, total_items = await self.repository.search_with_filters(
             search_params=search_params,
+            elastic_ids=elastic_ids,
             page=page,
             page_size=page_size
         )
@@ -98,9 +126,5 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
     async def _get_tags_by_ids(self, tag_ids: Sequence[int]) -> List[ModelType]:
         """Helper method to fetch tags by their ids"""
         return await self._get_entities_by_ids(ids=tag_ids, base_repository=self.tag_repository)
-
-    async def test_search(self, query: str, fuzzy: bool = True) -> None:
-        articles_ids = await self.search_repository.search_articles(query=query, fuzzy=fuzzy)
-        print(f"{article_id}\n" for article_id in articles_ids)
 
 

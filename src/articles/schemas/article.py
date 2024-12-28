@@ -3,9 +3,9 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from src.articles.schemas.author import AuthorCreate, Author
+from src.articles.schemas.author import Author
 from src.articles.schemas.base import BaseSchema
-from src.articles.schemas.tag import TagCreate, Tag
+from src.articles.schemas.tag import Tag
 
 
 class ArticleBase(BaseSchema):
@@ -39,3 +39,5 @@ class ArticleSearchFilters(BaseModel):
     title: Optional[str] = None
     publication_year: Optional[int] = None
     author: Optional[str] = None
+    abstract_search: Optional[str] = None
+
