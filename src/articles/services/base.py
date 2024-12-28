@@ -22,16 +22,33 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
         self.db = db
 
     async def get_by_id(self, obj_id: int) -> Optional[ModelType]:
+        """
+        find an object by its id
+        :param obj_id: the id of the object in question
+        :return: the object or None
+        """
         obj = await self.repository.get_by_id(obj_id)
         if not obj:
             raise HTTPException(status_code=404, detail=ErrorMessages.NOT_FOUND.value)
         return obj
 
     async def create(self, *, obj: CreateSchemaType) -> ModelType:
+        """
+        create a new object in the database
+        :param obj: the object to be created
+        :return: the created object
+        """
         async with self.db.begin_nested():
             return await self.repository.create(obj_in=obj)
 
     async def update(self, *, obj_id: int, obj: UpdateSchemaType, user_id: int) -> ModelType:
+        """
+        update an object in the database
+        :param obj_id: the id of the object in question
+        :param obj: the object to be updated
+        :param user_id: the id of the user attempting to update the object
+        :return: the updated object
+        """
         async with self.db.begin_nested():
             db_obj = await self.repository.get_by_id(obj_id)
             if self.owner_field:
@@ -40,6 +57,12 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
             return await self.repository.update(db_obj=db_obj, obj_in=obj)
 
     async def delete(self, *, obj_id: int, user_id: int) -> ModelType:
+        """
+        delete an object in the database
+        :param obj_id: the id of the object in question
+        :param user_id: the id of the user attempting to delete the object
+        :return: the deleted object
+        """
         async with self.db.begin_nested():
             db_obj = await self.repository.get_by_id(obj_id)
             if self.owner_field:
@@ -48,6 +71,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, Reposit
             return await self.repository.delete(obj_id=obj_id)
 
     async def _check_ownership(self, *, db_obj: ModelType, user_id: int) -> None:
+        """Check whether the owner of the object is in fact the user attempting to perform the operation"""
         if not self.owner_field:
             return
 

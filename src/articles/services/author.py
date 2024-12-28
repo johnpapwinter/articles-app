@@ -11,6 +11,11 @@ class AuthorService(BaseService[Author, AuthorCreate, AuthorUpdate, AuthorReposi
         super().__init__(AuthorRepository, db)
 
     async def create(self, *, obj: AuthorCreate) -> Author:
+        """
+        Create a new author or if the author exists, return it.
+        :param obj: the new author
+        :return: the existing or created author
+        """
         async with self.db.begin_nested():
             existing_author = await self.repository.get_by_name(obj.name)
             if existing_author:

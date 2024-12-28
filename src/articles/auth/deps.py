@@ -12,6 +12,7 @@ from src.articles.services.user import UserService
 
 
 async def get_token_from_header(authorization: Optional[str] = Header(None)) -> str:
+    """Get the JWT token from the authorization header."""
     if not authorization:
         raise HTTPException(status_code=401, detail=ErrorMessages.NOT_AUTHORIZED.value)
 
@@ -25,6 +26,7 @@ async def get_token_from_header(authorization: Optional[str] = Header(None)) -> 
 
 
 async def get_current_user(db: Session = Depends(get_db), token: str = Depends(get_token_from_header)) -> User:
+    """This function returns the user of the JWT token"""
     try:
         payload = verify_token(token)
         user_id: int = payload.sub

@@ -17,11 +17,21 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.db = db
 
     async def get_by_id(self, obj_id: Any) -> Optional[ModelType]:
+        """
+        get a database object by its id
+        :param obj_id: the id of the object in question
+        :return: the object or None if not found
+        """
         query =select(self.model).where(self.model.id == obj_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
     async def create(self, *, obj_in: CreateSchemaType) -> ModelType:
+        """
+        create a new database object
+        :param obj_in: the object to be created
+        :return: the created object
+        """
         obj_in_data = obj_in.model_dump()
         db_obj = self.model(**obj_in_data)
         self.db.add(db_obj)
@@ -30,6 +40,12 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType | Dict[str, Any]) -> ModelType:
+        """
+        update an existing database object
+        :param db_obj: the object to be updated as it currently is in the database
+        :param obj_in: the new object data that will be used to update the object
+        :return: the updated object
+        """
         obj_data = db_obj.to_dict()
         if isinstance(obj_in, dict):
             update_data = obj_in
@@ -46,6 +62,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def delete(self, *, obj_id: int) -> ModelType:
+        """
+        delete a database object by its id
+        :param obj_id: the id of the object in question
+        :return: the deleted object
+        """
         obj = await self.get_by_id(obj_id)
         if obj:
             await self.db.delete(obj)
@@ -53,6 +74,11 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj
 
     async def get_by_name(self, name: str) -> Optional[ModelType]:
+        """
+        get a database object by its name (primarily used for the author and tag models)
+        :param name: the name in question
+        :return: the object found or None if not found
+        """
         query = select(self.model).where(self.model.name == name)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()

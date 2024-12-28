@@ -14,6 +14,11 @@ class UserService(BaseService[User, UserCreate, UserUpdate, UserRepository]):
         super().__init__(UserRepository, db)
 
     async def create(self, *, obj: UserCreate) -> User:
+        """
+        create a new user
+        :param obj: the user to be created
+        :return: the created user
+        """
         async with self.db.begin_nested():
             existing_user = await self.repository.get_by_username(username=obj.username)
             if existing_user:

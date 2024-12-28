@@ -13,6 +13,11 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         super().__init__(User, db)
 
     async def get_by_username(self, username: str) -> Optional[User]:
+        """
+        get a user by username
+        :param username: the username string
+        :return: the user found in the database or None if the user does not exist
+        """
         query = select(self.model).where(self.model.username == username)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
