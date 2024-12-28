@@ -11,29 +11,53 @@ services:
     ports:
       - "9200:9200"
     networks:
-      - elastic
+      - articles
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  kibana:
-    image: kibana:8.16.2
+  postgres:
+    image: postgres:latest
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: articles_db
     ports:
-      - "5601:5601"
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - articles
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d articles_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  article-service:
+    container_name: article-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     depends_on:
+      postgres:
+        condition: service_healthy
       elasticsearch:
         condition: service_healthy
     networks:
-      - elastic
+      - articles
+
 
 networks:
-  elastic:
+  articles:
     driver: bridge
 
 volumes:
   elasticsearch-data:
+  postgres-data:
+
 
