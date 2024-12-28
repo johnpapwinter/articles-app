@@ -8,11 +8,18 @@ from src.articles.repositories.search_repository import ArticleSearchRepository
 from src.articles.schemas.article import ArticleSchema, ArticleCreate, ArticleUpdate, ArticleSearchFilters
 from src.articles.schemas.base import PaginationSchema
 from src.articles.services.article import ArticleService
+from src.articles.utils.decorators import endpoint_decorator
 
 article_router = APIRouter()
 
 
 @article_router.post("/create", response_model=ArticleSchema)
+@endpoint_decorator(
+    summary="Create a new article",
+    response_model=ArticleSchema,
+    status_code=201,
+    description="Create a new article"
+)
 async def create_article(*, db: DbSession, article: ArticleCreate, current_user: CurrentUser) -> Any:
     search_repository = ArticleSearchRepository(get_elasticsearch_client())
     article_service = ArticleService(db, search_repository)
@@ -29,6 +36,7 @@ async def create_article(*, db: DbSession, article: ArticleCreate, current_user:
 
 
 @article_router.get("/get/{article_id}", response_model=ArticleSchema)
+@endpoint_decorator(summary="Get an article by ID", response_model=ArticleSchema)
 async def get_article(*, db: DbSession, article_id: int) -> Any:
     search_repository = ArticleSearchRepository(get_elasticsearch_client())
     article_service = ArticleService(db, search_repository)
@@ -36,6 +44,7 @@ async def get_article(*, db: DbSession, article_id: int) -> Any:
 
 
 @article_router.put("/{article_id}", response_model=ArticleSchema)
+@endpoint_decorator(summary="Update an article", response_model=ArticleSchema)
 async def update_article(*, db: DbSession, article_id: int, article: ArticleUpdate, current_user: CurrentUser) -> Any:
     search_repository = ArticleSearchRepository(get_elasticsearch_client())
     article_service = ArticleService(db, search_repository)
@@ -43,6 +52,7 @@ async def update_article(*, db: DbSession, article_id: int, article: ArticleUpda
 
 
 @article_router.delete("/{article_id}", response_model=ArticleSchema)
+@endpoint_decorator(summary="Delete an article", response_model=ArticleSchema)
 async def delete_article(*, db: DbSession, article_id: int, current_user: CurrentUser) -> Any:
     search_repository = ArticleSearchRepository(get_elasticsearch_client())
     article_service = ArticleService(db, search_repository)
@@ -50,6 +60,11 @@ async def delete_article(*, db: DbSession, article_id: int, current_user: Curren
 
 
 @article_router.post("/search", response_model=PaginationSchema[ArticleSchema])
+@endpoint_decorator(
+    summary="Search articles",
+    response_model=PaginationSchema[ArticleSchema],
+    description="Search articles with filters and return a paginated response."
+)
 async def search_articles(
         *,
         db: DbSession,

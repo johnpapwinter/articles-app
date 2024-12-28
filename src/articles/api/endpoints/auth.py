@@ -4,11 +4,13 @@ from src.articles.api.deps import DbSession
 from src.articles.auth.jwt_utils import create_access_token
 from src.articles.auth.schemas import Token, LoginCredentials
 from src.articles.services.user import UserService
+from src.articles.utils.decorators import endpoint_decorator
 
 auth_router = APIRouter()
 
 
 @auth_router.post('/login', response_model=Token)
+@endpoint_decorator(summary="Login to the app", response_model=Token)
 async def login(db: DbSession, credentials: LoginCredentials) -> Token:
     user_service = UserService(db)
     user = await user_service.authenticate(username=credentials.username, password=credentials.password)

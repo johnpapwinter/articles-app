@@ -5,11 +5,18 @@ from fastapi import APIRouter
 from src.articles.api.deps import DbSession, CurrentUser
 from src.articles.schemas.comment import Comment, CommentCreate, CommentUpdate
 from src.articles.services.comment import CommentService
+from src.articles.utils.decorators import endpoint_decorator
 
 comments_router = APIRouter()
 
 
 @comments_router.post("", response_model=Comment)
+@endpoint_decorator(
+    summary="Create a new comment on an article",
+    status_code=201,
+    response_model=Comment,
+    description="Create a new comment on an article",
+)
 async def create_comment(*, db: DbSession, comment_in: CommentCreate, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
     comment_in = CommentCreate(
@@ -22,18 +29,21 @@ async def create_comment(*, db: DbSession, comment_in: CommentCreate, current_us
 
 
 @comments_router.get("/{comment_id}", response_model=Comment)
+@endpoint_decorator(summary="Get a comment on an article", response_model=Comment)
 async def get_comment(*, db: DbSession, comment_id: int) -> Any:
     comment_service = CommentService(db)
     return await comment_service.get_by_id(comment_id)
 
 
 @comments_router.put("/{comment_id}", response_model=Comment)
+@endpoint_decorator(summary="Update a comment on an article", response_model=Comment)
 async def update_comment(*, db: DbSession, comment_id: int, comment_in: CommentUpdate, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
     return await comment_service.update(obj_id=comment_id, obj=comment_in, user_id=current_user.id)
 
 
 @comments_router.delete("/{comment_id}", response_model=Comment)
+@endpoint_decorator(summary="Delete a comment on an article", response_model=Comment)
 async def delete_comment(*, db: DbSession, comment_id: int, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
     return await comment_service.delete(obj_id=comment_id, user_id=current_user.id)
