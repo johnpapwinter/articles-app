@@ -8,10 +8,12 @@ from starlette.middleware.cors import CORSMiddleware
 from src.articles.api import logging_middleware
 from src.articles.api.router import api_router
 from src.articles.core.dependencies import get_elasticsearch_client
+from src.articles.db.init_db import init_db
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    await init_db()
     es_client: AsyncElasticsearch = get_elasticsearch_client()
     yield
     await es_client.close()

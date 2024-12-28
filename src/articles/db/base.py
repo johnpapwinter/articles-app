@@ -17,3 +17,5 @@ class Base(DeclarativeBase):
         }
 
 
+from sqlalchemy_continuum import versioning_manager
+versioning_manager.options['native_versioning'] = True
