@@ -10,6 +10,8 @@ from src.articles.api.logging_middleware import logger_middleware
 from src.articles.api.router import api_router
 from src.articles.core.config.factory import get_settings
 from src.articles.core.dependencies import get_elasticsearch_client
+from src.articles.db import AsyncSessionLocal
+from src.articles.db.init_data import init_data
 from src.articles.db.init_db import init_db
 
 
@@ -20,6 +22,10 @@ settings = get_settings(ENVIRONMENT)
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     await init_db()
+
+    async with AsyncSessionLocal() as db:
+        await init_data(db)
+
     es_client: AsyncElasticsearch = get_elasticsearch_client()
     yield
     await es_client.close()
