@@ -19,7 +19,7 @@ def get_settings(environment: str = None) -> BaseConfig:
     configs = {
         "development": DevelopmentConfig,
         "production": ProductionConfig,
-        "test": TestConfig,
+        "tests": TestConfig,
     }
 
     config_class = configs.get(environment.lower())

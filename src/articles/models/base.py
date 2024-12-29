@@ -9,7 +9,6 @@ from src.articles.db.base import Base
 class BaseModel(Base):
     __abstract__ = True
     __versioned__ = {
-        # 'track_property_modifications': True
         'base_classes': (Base,),
     }
 

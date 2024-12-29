@@ -1,0 +1,47 @@
+
+services:
+  elasticsearch:
+    image: elasticsearch:8.16.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - articles
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: articles_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - articles
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d articles_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  articles:
+    driver: bridge
+
+volumes:
+  elasticsearch-data:
+  postgres-data:
+
+
