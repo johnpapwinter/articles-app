@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -7,8 +8,13 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.articles.api.logging_middleware import logger_middleware
 from src.articles.api.router import api_router
+from src.articles.core.config.factory import get_settings
 from src.articles.core.dependencies import get_elasticsearch_client
 from src.articles.db.init_db import init_db
+
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+settings = get_settings(ENVIRONMENT)
 
 
 @asynccontextmanager
@@ -20,7 +26,7 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(
-    title="Articles API",
+    title=f"{settings.APP_NAME} API",
     version="0.1.0",
     lifespan=lifespan
 )

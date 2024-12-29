@@ -1,9 +1,17 @@
+import os
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy_continuum import versioning_manager
 
-from src.articles.core.config import settings
+from src.articles.core.config.factory import get_settings
+
+# from sqlalchemy_continuum import versioning_manager
+
+# from src.articles.core.config import settings
+
+
+settings = get_settings(os.getenv("ENVIRONMENT", "development"))
+
 
 engine = create_async_engine(
     settings.POSTGRES_URI,

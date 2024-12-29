@@ -1,10 +1,16 @@
+import os
 from datetime import datetime, UTC, timedelta
 
 from jose import jwt, JWTError
 from pydantic import ValidationError
 
 from src.articles.auth.schemas import TokenPayload
-from src.articles.core.config import settings
+from src.articles.core.config.factory import get_settings
+
+# from src.articles.core.config import settings
+
+
+settings = get_settings(os.getenv("ENVIRONMENT", "development"))
 
 
 def create_access_token(user_id: int) -> str:

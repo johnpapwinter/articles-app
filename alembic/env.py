@@ -1,12 +1,18 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+from src.articles.core.config.factory import get_settings
 from src.articles.db.base import Base
-from src.articles.core.config import settings
+# from src.articles.core.config import settings
 from sqlalchemy_continuum import make_versioned
+
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+settings = get_settings(ENVIRONMENT)
 
 make_versioned(user_cls=None)
 

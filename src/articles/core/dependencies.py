@@ -1,18 +1,22 @@
+import os
 from functools import lru_cache
 
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 
-from src.articles.core.config import Settings, settings
+# from src.articles.core.config import Settings, settings
+from src.articles.core.config.base import BaseConfig
+from src.articles.core.config.factory import get_settings
 
 
 @lru_cache()
-def get_settings() -> Settings:
-    return Settings()
+def get_and_cache_settings() -> BaseConfig:
+    return get_settings(os.getenv("ENVIRONMENT", "development"))
+    # return Settings()
 
 
-def get_elasticsearch_client(settings_: Settings | None = None) -> AsyncElasticsearch:
-    configured_settings = settings_ or settings
+def get_elasticsearch_client(settings_: BaseConfig | None = None) -> AsyncElasticsearch:
+    configured_settings = settings_ or get_and_cache_settings()
 
     return AsyncElasticsearch(
         hosts=[configured_settings.ELASTICSEARCH_HOST],
@@ -24,6 +28,6 @@ def get_elasticsearch_client(settings_: Settings | None = None) -> AsyncElastics
     )
 
 
-def get_elasticsearch_client_dependency(settings_: Settings = Depends(get_settings)) -> AsyncElasticsearch:
+def get_elasticsearch_client_dependency(settings_: BaseConfig = Depends(get_settings)) -> AsyncElasticsearch:
     return get_elasticsearch_client(settings_)
 
