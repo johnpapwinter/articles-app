@@ -1,10 +1,12 @@
 from datetime import timezone, datetime
 
-from sqlalchemy import text, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.articles.auth.password_utils import get_password_hash
+from src.articles.core.dependencies import get_elasticsearch_client
 from src.articles.models import Author, Tag, User, Article
+from src.articles.repositories import ArticleSearchRepository
 from src.articles.utils.logging import setup_logging
 
 
@@ -66,7 +68,13 @@ async def init_tags(db: AsyncSession) -> list[Tag]:
     return created_tags
 
 
-async def init_articles(db: AsyncSession, authors: list[Author], tags: list[Tag], users: list[User]) -> None:
+async def init_articles(
+        db: AsyncSession,
+        authors: list[Author],
+        tags: list[Tag],
+        users: list[User],
+        search_repository: ArticleSearchRepository,
+) -> None:
     """Initialize default articles"""
 
     sample_articles = [
@@ -111,6 +119,7 @@ async def init_articles(db: AsyncSession, authors: list[Author], tags: list[Tag]
         },
     ]
 
+    created_articles = []
     for article_data in sample_articles:
         # Check if article already exists
         query = select(Article).where(Article.title == article_data["title"])
@@ -127,8 +136,13 @@ async def init_articles(db: AsyncSession, authors: list[Author], tags: list[Tag]
             article.authors = article_authors
             article.tags = article_tags
             db.add(article)
+            created_articles.append(article)
 
     await db.commit()
+
+    for article in created_articles:
+        await search_repository.index_article(article)
+
     logger.info("Sample articles initialized")
 
 
@@ -161,13 +175,18 @@ async def init_users(db: AsyncSession) -> list[User]:
 async def init_data(db: AsyncSession) -> None:
     """Initialize default data"""
     try:
+        # Initialize search repository
+        search_repository = ArticleSearchRepository(get_elasticsearch_client())
+
+        await search_repository.create_index()
+
         # Initialize in order and keep references
         users = await init_users(db)
         authors = await init_authors(db)
         tags = await init_tags(db)
 
         # Initialize articles with the created entities
-        await init_articles(db, authors, tags, users)
+        await init_articles(db, authors, tags, users, search_repository)
 
         logger.info(f"Default data created successfully")
     except Exception as e:
