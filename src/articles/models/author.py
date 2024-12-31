@@ -8,6 +8,9 @@ from src.articles.models.base import BaseModel
 
 class Author(BaseModel):
     __tablename__ = 'authors'
+    __versioned__ = {
+        'transaction_table_schema': 'versioning'
+    }
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)

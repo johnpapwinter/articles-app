@@ -31,11 +31,12 @@ async def init_authors(db: AsyncSession) -> list[Author]:
         if author is None:
             author = Author(**author_data)
             db.add(author)
-            await db.flush()  # Flush to get the ID
+            # await db.flush()  # Flush to get the ID
+            await db.commit()
 
         created_authors.append(author)
 
-    await db.commit()
+    # await db.commit()
     logger.info("Default authors initialized")
     return created_authors
 
@@ -59,11 +60,12 @@ async def init_tags(db: AsyncSession) -> list[Tag]:
         if tag is None:
             tag = Tag(**tag_data)
             db.add(tag)
-            await db.flush()  # Flush to get the ID
+            # await db.flush()  # Flush to get the ID
+            await db.commit()
 
         created_tags.append(tag)
 
-    await db.commit()
+    # await db.commit()
     logger.info("Default tags initialized")
     return created_tags
 
@@ -163,11 +165,12 @@ async def init_users(db: AsyncSession) -> list[User]:
         if user is None:
             user = User(**user_data)
             db.add(user)
-            await db.flush()  # Flush to get the ID
+            # await db.flush()  # Flush to get the ID
+            await db.commit()
 
         created_users.append(user)
 
-    await db.commit()
+    # await db.commit()
     logger.info("Default users initialized")
     return created_users
 

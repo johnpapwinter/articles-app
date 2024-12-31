@@ -1,20 +1,37 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, text
 from sqlalchemy import pool
 
 from alembic import context
+# from sqlalchemy_continuum.plugins import PropertyModTrackerPlugin
 
 from src.articles.core.config.factory import get_settings
 from src.articles.db.base import Base
 # from src.articles.core.config import settings
-from sqlalchemy_continuum import make_versioned
+# from sqlalchemy_continuum import make_versioned, versioning_manager
+
+# make_versioned(user_cls=None, plugins=[PropertyModTrackerPlugin()])
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 settings = get_settings(ENVIRONMENT)
 
-make_versioned(user_cls=None)
+# # Initialize versioning
+# make_versioned(user_cls=None)
+#
+# # Configure versioning manager
+# versioning_manager.options.update({
+#     'native_versioning': True,
+#     'transaction_column_name': 'transaction_id',
+#     'end_transaction_column_name': 'end_transaction_id',
+#     'operation_type_column_name': 'operation_type',
+#     'strategy': 'validity',
+#     'use_module_name': False,
+#     'schema_name': 'versioning',
+#     'transaction_table_schema': 'versioning',
+# })
+
 
 from src.articles.models.article import Article
 from src.articles.models.user import User
@@ -22,8 +39,7 @@ from src.articles.models.author import Author
 from src.articles.models.comment import Comment
 from src.articles.models.tag import Tag
 
-
-# Base.prepare_versioning()
+# versioning_manager.declarative_base = Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -74,15 +90,22 @@ def run_migrations_offline() -> None:
 
 
 def include_object(obj, name, type_, reflected, compare_to):
-    """Handle versioning tables exclusion"""
-    if name is None:
-        return True
+    """Handle versioning tables inclusion"""
     if type_ == "table":
-        return not (name.endswith('_version') or
-                   name == 'transaction' or
-                   name.endswith('_version_id') or
-                   name.endswith('_temp'))
+        # Skip version_table operations during initial migration
+        if name == "version_table":
+            return False
     return True
+
+    # """Handle versioning tables exclusion"""
+    # if name is None:
+    #     return True
+    # if type_ == "table":
+    #     return not (name.endswith('_version') or
+    #                name == 'transaction' or
+    #                name.endswith('_version_id') or
+    #                name.endswith('_temp'))
+    # return True
 
 
 def run_migrations_online() -> None:
@@ -101,13 +124,18 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        # Create versioning schema if it doesn't exist
+        connection.execute(text("CREATE SCHEMA IF NOT EXISTS versioning"))
+        connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             include_schemas=True,
             compare_type=True,
             compare_server_default=True,
-            include_object=include_object
+            include_object=include_object,
+            # version_table_schema="versioning",
         )
 
         with context.begin_transaction():
