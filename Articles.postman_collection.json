@@ -1,0 +1,262 @@
+{
+	"info": {
+		"_postman_id": "f8948415-86f0-4fa7-b056-dd2dbffa8dba",
+		"name": "Articles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "21545141"
+	},
+	"item": [
+		{
+			"name": "Articles_Get_One",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5IiwiaXNzIjoiQXJ0aWNsZXNBcHAiLCJpYXQiOjE3MzUxMTM3NDIsImV4cCI6MTczNTExNzM0Mn0.yj1yDj20kDr0t6wOzZ4M02wJKYieoF6UfQ60b2suRr8"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://0.0.0.0:8000/articles/1"
+			},
+			"response": []
+		},
+		{
+			"name": "Articles_Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5IiwiaXNzIjoiQXJ0aWNsZXNBcHAiLCJpYXQiOjE3MzU0MDE0NTUsImV4cCI6MTczNTQwNTA1NX0.pFn8NycPKNYdyTYkkr3k_0DbG2hNJACHBFUaT4-_R-M"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Parker Probe\",\r\n    \"abstract\": \"It used repeated gravity assists from Venus to develop an eccentric orbit, approaching within 9.86 solar radii (6.9 million km or 4.3 million miles)[7][8] from the center of the Sun. At its closest approach in 2024, its speed was 690,000 km/h (430,000 mph) or 191 km/s, which is 0.064% the speed of light.[7][9] It is the fastest object ever built on Earth.[10] The project was announced in the fiscal 2009 budget year. Johns Hopkins University Applied Physics Laboratory designed and built the spacecraft,[11] which was launched on 12 August 2018.[2] It became the first NASA spacecraft named after a living person, honoring physicist Eugene Newman Parker, professor emeritus at the University of Chicago.[12]\",\r\n    \"publication_date\": \"2024-01-01\",\r\n    \"author_ids\": [3],\r\n    \"tag_ids\": [1]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/articles/create"
+			},
+			"response": []
+		},
+		{
+			"name": "Articles_Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5IiwiaXNzIjoiQXJ0aWNsZXNBcHAiLCJpYXQiOjE3MzUxOTc0NDQsImV4cCI6MTczNTIwMTA0NH0.pHZhnH85TSjcINUlrtXeN1WAu_8jbaYUcRFDmqBvKjE"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Churchill's Book\",\r\n    \"abstract\": \"Winston Churchill's efforts during World War II\",\r\n    \"publication_date\": \"2020-01-01\",\r\n    \"author_ids\": [1, 3],\r\n    \"tag_ids\": [1, 2, 4]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/articles/19"
+			},
+			"response": []
+		},
+		{
+			"name": "Articles_Delete",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://0.0.0.0:8000/articles/2"
+			},
+			"response": []
+		},
+		{
+			"name": "Auth_Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"user1\",\r\n    \"password\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/auth/login"
+			},
+			"response": []
+		},
+		{
+			"name": "Tag_Create",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"fiction\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/tags"
+			},
+			"response": []
+		},
+		{
+			"name": "Auth_Create_User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"carla\",\r\n    \"password\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Articles_Search",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"author\": \"tolkien\",\r\n    \"abstract_search\": \"used repeated assists\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/articles/search"
+			},
+			"response": []
+		},
+		{
+			"name": "Articles_Export_CSV",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"author\": \"tolkien\",\r\n    \"abstract_search\": \"used repeated assists\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/articles/export-csv"
+			},
+			"response": []
+		},
+		{
+			"name": "Comments_Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMiIsImlzcyI6IkFydGljbGVzQXBwIiwiaWF0IjoxNzM2MDc0NTExLCJleHAiOjE3MzYwNzgxMTF9.Oe9m3DwR8cbtuKPK4VmpXOliiThh_4PWJyOpmm_81HY"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"I am another cool comment\",\r\n    \"article_id\": 23\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/comments"
+			},
+			"response": []
+		},
+		{
+			"name": "Comments_Get_One",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://0.0.0.0:8000/comments/1"
+			},
+			"response": []
+		},
+		{
+			"name": "Comments_Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMyIsImlzcyI6IkFydGljbGVzQXBwIiwiaWF0IjoxNzM2MDc1Nzg0LCJleHAiOjE3MzYwNzkzODR9.09WHFZJJHBPR5MiB9wIcUIweR3358Kq4Em3itDSy6Io"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"I am a super cool comment\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/comments/1"
+			},
+			"response": []
+		},
+		{
+			"name": "Comments_Delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMiIsImlzcyI6IkFydGljbGVzQXBwIiwiaWF0IjoxNzM2MDc0NTExLCJleHAiOjE3MzYwNzgxMTF9.Oe9m3DwR8cbtuKPK4VmpXOliiThh_4PWJyOpmm_81HY"
+					}
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://0.0.0.0:8000/comments/2"
+			},
+			"response": []
+		},
+		{
+			"name": "Comments_Get_All_of_Article",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://0.0.0.0:8000/comments/article/23"
+			},
+			"response": []
+		}
+	]
+}

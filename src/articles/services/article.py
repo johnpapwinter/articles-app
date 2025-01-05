@@ -1,3 +1,6 @@
+import pandas as pd
+
+from io import BytesIO
 from math import ceil
 from typing import List
 
@@ -111,6 +114,44 @@ class ArticleService(BaseService[Article, ArticleCreate, ArticleUpdate, ArticleR
             total_pages=total_pages,
             total_items=total_items,
         )
+
+    async def export_search_to_csv(self, *, search_params: ArticleSearchFilters) -> BytesIO:
+        """Export search results to a CSV file."""
+        elastic_ids = None
+        if search_params.abstract_search:
+            elastic_ids = await self.search_repository.search_articles(
+                query=search_params.abstract_search,
+                fuzzy=True,
+                size=1000
+            )
+
+        articles = await self.repository.get_all_with_filters(
+            search_params=search_params,
+            elastic_ids=elastic_ids
+        )
+
+        # Convert articles to a list of dictionaries for pandas
+        articles_data = []
+        for article in articles:
+            articles_data.append({
+                'ID': article.id,
+                'Title': article.title,
+                'Abstract': article.abstract,
+                'Publication Date': article.publication_date.strftime('%Y-%m-%d'),
+                'Authors': ', '.join(author.name for author in article.authors),
+                'Tags': ', '.join(tag.name for tag in article.tags),
+                'Owner ID': article.owner_id
+            })
+
+        # Create DataFrame
+        df = pd.DataFrame(articles_data)
+
+        # Create BytesIO object to store CSV
+        output = BytesIO()
+        df.to_csv(output, index=False, encoding='utf-8-sig')  # utf-8-sig for Excel compatibility
+        output.seek(0)  # Reset buffer position to beginning
+
+        return output
 
     async def _get_entities_by_ids(self, *, ids: Sequence[int], base_repository: BaseRepository) -> List[ModelType]:
         """Helper method to fetch multiple entities by ids and validate that they exist"""

@@ -34,4 +34,3 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         query = select(self.model).where(self.model.id == db_obj.id)
         result = await self.db.execute(query)
         return result.scalar_one()
-

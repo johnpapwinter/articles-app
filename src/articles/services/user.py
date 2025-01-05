@@ -5,7 +5,7 @@ from src.articles.auth.password_utils import get_password_hash, verify_password
 from src.articles.core.error_messages import ErrorMessages
 from src.articles.models.user import User
 from src.articles.repositories.user import UserRepository
-from src.articles.schemas.user import UserCreate, UserUpdate
+from src.articles.schemas.user import UserCreate, UserUpdate, UserSchema
 from src.articles.services.base import BaseService
 
 
@@ -13,7 +13,7 @@ class UserService(BaseService[User, UserCreate, UserUpdate, UserRepository]):
     def __init__(self, db: AsyncSession):
         super().__init__(UserRepository, db)
 
-    async def create(self, *, obj: UserCreate) -> User:
+    async def create(self, *, obj: UserCreate) -> UserSchema:
         """
         create a new user
         :param obj: the user to be created
@@ -27,7 +27,8 @@ class UserService(BaseService[User, UserCreate, UserUpdate, UserRepository]):
             hashed_password = get_password_hash(obj.password)
             user_data = UserCreate(username=obj.username, password=hashed_password)
 
-            return await self.repository.create_user(obj_in=user_data)
+            created_user = await self.repository.create_user(obj_in=user_data)
+            return UserSchema.model_validate(created_user)
 
     async def authenticate(self, *, username: str, password: str) -> User | None:
         """Authenticate a user by username and password."""

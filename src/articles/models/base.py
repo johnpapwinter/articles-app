@@ -8,9 +8,6 @@ from src.articles.db.base import Base
 
 class BaseModel(Base):
     __abstract__ = True
-    __versioned__ = {
-        'base_classes': (Base,),
-    }
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -56,7 +56,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             update_data = obj_in.model_dump(exclude_unset=True)
 
-        for field in obj_data:
+        for field in update_data:
             if hasattr(db_obj, field):
                 setattr(db_obj, field, update_data[field])
 

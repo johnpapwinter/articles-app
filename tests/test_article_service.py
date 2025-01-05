@@ -1,4 +1,7 @@
+from io import BytesIO
+
 import pytest
+import pandas as pd
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from fastapi import HTTPException
@@ -150,3 +153,151 @@ class TestArticleService:
         # Assert
         assert result.total_items >= 0
         assert isinstance(result.items, list)
+
+        async def test_export_search_to_csv_empty_results(self, article_service):
+            # Arrange
+            search_filters = ArticleSearchFilters()
+
+            # Act
+            csv_buffer = await article_service.export_search_to_csv(search_params=search_filters)
+
+            # Assert
+            assert isinstance(csv_buffer, BytesIO)
+            # Read the CSV data
+            csv_buffer.seek(0)
+            df = pd.read_csv(csv_buffer)
+            assert len(df) == 0
+            assert list(df.columns) == ['ID', 'Title', 'Abstract', 'Publication Date', 'Authors', 'Tags', 'Owner ID']
+
+        async def test_export_search_to_csv_with_results(self, article_service):
+            # Arrange
+            # Create test author and tag
+            author = await article_service.author_repository.create(AuthorCreate(
+                name="Test Author"
+            ))
+            tag = await article_service.tag_repository.create(TagCreate(
+                name="Test Tag"
+            ))
+
+            # Create test article
+            article_data = ArticleCreate(
+                title="Test Article",
+                abstract="Test Abstract",
+                publication_date=datetime.now(timezone.utc),
+                owner_id=1,
+                author_ids=[author.id],
+                tag_ids=[tag.id]
+            )
+            await article_service.create(obj=article_data)
+
+            search_filters = ArticleSearchFilters(
+                title="Test"
+            )
+
+            # Act
+            csv_buffer = await article_service.export_search_to_csv(search_params=search_filters)
+
+            # Assert
+            assert isinstance(csv_buffer, BytesIO)
+            # Read the CSV data
+            csv_buffer.seek(0)
+            df = pd.read_csv(csv_buffer)
+            assert len(df) >= 1
+
+            # Check first row content
+            first_row = df.iloc[0]
+            assert first_row['Title'] == "Test Article"
+            assert first_row['Abstract'] == "Test Abstract"
+            assert first_row['Authors'] == "Test Author"
+            assert first_row['Tags'] == "Test Tag"
+            assert first_row['Owner ID'] == 1
+
+        async def test_export_search_to_csv_with_filters(self, article_service):
+            # Arrange
+            # Create multiple articles with different titles
+            article_data1 = ArticleCreate(
+                title="Python Article",
+                abstract="Python Abstract",
+                publication_date=datetime.now(timezone.utc),
+                owner_id=1,
+                author_ids=[],
+                tag_ids=[]
+            )
+            article_data2 = ArticleCreate(
+                title="Java Article",
+                abstract="Java Abstract",
+                publication_date=datetime.now(timezone.utc),
+                owner_id=1,
+                author_ids=[],
+                tag_ids=[]
+            )
+            await article_service.create(obj=article_data1)
+            await article_service.create(obj=article_data2)
+
+            search_filters = ArticleSearchFilters(
+                title="Python"
+            )
+
+            # Act
+            csv_buffer = await article_service.export_search_to_csv(search_params=search_filters)
+
+            # Assert
+            assert isinstance(csv_buffer, BytesIO)
+            csv_buffer.seek(0)
+            df = pd.read_csv(csv_buffer)
+
+            # Check that only Python article is included
+            assert len(df[df['Title'].str.contains('Python', na=False)]) == 1
+            assert len(df[df['Title'].str.contains('Java', na=False)]) == 0
+
+        async def test_export_search_to_csv_with_abstract_search(self, article_service):
+            # Arrange
+            article_data = ArticleCreate(
+                title="Test Article",
+                abstract="Specific unique abstract for testing",
+                publication_date=datetime.now(timezone.utc),
+                owner_id=1,
+                author_ids=[],
+                tag_ids=[]
+            )
+            await article_service.create(obj=article_data)
+
+            search_filters = ArticleSearchFilters(
+                abstract_search="unique"
+            )
+
+            # Act
+            csv_buffer = await article_service.export_search_to_csv(search_params=search_filters)
+
+            # Assert
+            assert isinstance(csv_buffer, BytesIO)
+            csv_buffer.seek(0)
+            df = pd.read_csv(csv_buffer)
+            assert len(df) >= 1
+            assert "unique" in df.iloc[0]['Abstract'].lower()
+
+        async def test_export_search_to_csv_encoding(self, article_service):
+            # Arrange
+            # Create article with special characters
+            article_data = ArticleCreate(
+                title="Test with üñíçødé",
+                abstract="Abstract with émôjîs 🌟",
+                publication_date=datetime.now(timezone.utc),
+                owner_id=1,
+                author_ids=[],
+                tag_ids=[]
+            )
+            await article_service.create(obj=article_data)
+
+            search_filters = ArticleSearchFilters()
+
+            # Act
+            csv_buffer = await article_service.export_search_to_csv(search_params=search_filters)
+
+            # Assert
+            assert isinstance(csv_buffer, BytesIO)
+            csv_buffer.seek(0)
+            df = pd.read_csv(csv_buffer, encoding='utf-8-sig')
+            assert "üñíçødé" in df.iloc[0]['Title']
+            assert "émôjîs" in df.iloc[0]['Abstract']
+

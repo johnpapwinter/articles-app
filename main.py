@@ -49,14 +49,6 @@ async def lifespan(application: FastAPI):
         raise
     finally:
         logger.info("Cleanup completed")
-    # await init_db()
-    #
-    # async with AsyncSessionLocal() as db:
-    #     await init_data(db)
-    #
-    # es_client: AsyncElasticsearch = get_elasticsearch_client()
-    # yield
-    # await es_client.close()
 
 
 app = FastAPI(

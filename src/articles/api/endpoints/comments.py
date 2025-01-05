@@ -1,8 +1,9 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.articles.api.deps import DbSession, CurrentUser
+from src.articles.schemas.base import PaginationSchema
 from src.articles.schemas.comment import Comment, CommentCreate, CommentUpdate
 from src.articles.services.comment import CommentService
 from src.articles.utils.decorators import endpoint_decorator
@@ -47,4 +48,21 @@ async def update_comment(*, db: DbSession, comment_id: int, comment_in: CommentU
 async def delete_comment(*, db: DbSession, comment_id: int, current_user: CurrentUser) -> Any:
     comment_service = CommentService(db)
     return await comment_service.delete(obj_id=comment_id, user_id=current_user.id)
+
+
+@comments_router.get("/article/{article_id}", response_model=PaginationSchema[Comment])
+@endpoint_decorator(summary="Get paginated comments for an article", response_model=PaginationSchema[Comment])
+async def get_article_comments(
+    *,
+    db: DbSession,
+    article_id: int,
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of items per page")
+) -> Any:
+    comment_service = CommentService(db)
+    return await comment_service.get_paginated_by_article(
+        article_id=article_id,
+        page=page,
+        page_size=page_size
+    )
 

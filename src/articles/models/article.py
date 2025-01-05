@@ -24,9 +24,6 @@ article_tags = Table(
 
 class Article(BaseModel):
     __tablename__ = 'articles'
-    __versioned__ = {
-        'transaction_table_schema': 'versioning'
-    }
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)

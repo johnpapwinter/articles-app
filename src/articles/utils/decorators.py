@@ -34,6 +34,7 @@ def endpoint_decorator(
         @wraps(func)
         async def wrapper(*args, **kwargs):
             response = await func(*args, **kwargs)
+            return response
 
         wrapper.__doc__ = description or func.__doc__
         wrapper.summary = summary

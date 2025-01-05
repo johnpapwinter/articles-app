@@ -6,9 +6,6 @@ from src.articles.models.base import BaseModel
 
 class Comment(BaseModel):
     __tablename__ = 'comments'
-    __versioned__ = {
-        'transaction_table_schema': 'versioning'
-    }
 
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)

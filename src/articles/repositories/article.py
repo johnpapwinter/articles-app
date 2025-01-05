@@ -135,4 +135,38 @@ class ArticleRepository(BaseRepository[Article, ArticleCreate, ArticleUpdate]):
 
         return items, total
 
+    @log_database_operations
+    async def get_all_with_filters(
+            self,
+            *,
+            search_params: ArticleSearchFilters,
+            elastic_ids: Optional[List[int]]
+    ) -> List[Article]:
+        """
+        get all articles based on the given filters
+        :param search_params: the filters to search for
+        :param elastic_ids: the elasticsearch ids found in the text search in elasticsearch
+        :return: the list of articles
+        """
+        query = select(self.model).options(
+            selectinload(self.model.authors),
+            selectinload(self.model.tags),
+        )
+
+        if elastic_ids is not None:
+            query = query.filter(self.model.id.in_(elastic_ids))
+
+        if search_params.title:
+            query = query.filter(func.lower(self.model.title).contains(search_params.title.lower()))
+
+        if search_params.publication_year:
+            query = query.filter(extract('year', self.model.publication_date) == search_params.publication_year)
+
+        if search_params.author:
+            query = query.join(self.model.authors).filter(
+                func.lower(Author.name).contains(search_params.author.lower())
+            )
+
+        result = await self.db.execute(query)
+        return result.scalars().all()
 

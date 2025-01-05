@@ -1,6 +1,9 @@
+import pandas as pd
+
 from typing import Any
 
 from fastapi import APIRouter, Query
+from starlette.responses import StreamingResponse
 
 from src.articles.api.deps import DbSession, CurrentUser
 from src.articles.core.dependencies import get_elasticsearch_client
@@ -78,5 +81,28 @@ async def search_articles(
         search_params=search_params,
         page=page,
         page_size=page_size,
+    )
+
+@article_router.post("/export-csv")
+@endpoint_decorator(
+    summary="Export search results as CSV",
+    description="Export all articles matching the search criteria as a CSV file"
+)
+async def export_articles_csv(
+        *,
+        db: DbSession,
+        search_params: ArticleSearchFilters,
+) -> StreamingResponse:
+    search_repository = ArticleSearchRepository(get_elasticsearch_client())
+    article_service = ArticleService(db, search_repository)
+
+    csv_file = await article_service.export_search_to_csv(search_params=search_params)
+
+    return StreamingResponse(
+        iter([csv_file.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=articles_export_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        }
     )
 

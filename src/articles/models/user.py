@@ -8,9 +8,6 @@ from src.articles.models.base import BaseModel
 
 class User(BaseModel):
     __tablename__ = 'users'
-    __versioned__ = {
-        'transaction_table_schema': 'versioning'
-    }
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)

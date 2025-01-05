@@ -18,6 +18,10 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
 
 
-class User(BaseModel):
+class UserSchema(BaseModel):
     id: int
     username: str
+
+    class Config:
+        from_attributes = True
+
