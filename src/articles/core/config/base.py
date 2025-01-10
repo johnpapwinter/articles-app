@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class BaseConfig(BaseSettings):
     APP_NAME: str = 'Articles'
+    ENV : str = 'base'
 
     # Database
     POSTGRES_HOST: str = 'localhost'

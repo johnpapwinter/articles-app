@@ -1,14 +1,13 @@
 
 services:
   elasticsearch:
-    container_name: articles-elasticsearch
     image: elasticsearch:8.16.2
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch_prod_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:
@@ -20,16 +19,15 @@ services:
       retries: 3
 
   postgres:
-    container_name: articles-postgres
     image: postgres:17
     environment:
-      POSTGRES_USER: articles_user
-      POSTGRES_PASSWORD: p@ssw0rd1
-      POSTGRES_DB: articles_dev_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5433:5432"
     volumes:
-      - articles_data:/var/lib/postgresql/data
+      - articles_prod_data:/var/lib/postgresql/data
     networks:
       - articles
     healthcheck:
@@ -46,23 +44,23 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - APP_NAME=Articles
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=articles_user
-      - POSTGRES_PASSWORD=p@ssw0rd1
-      - POSTGRES_DB=articles_dev_db
-      - DB_ECHO=False
-      - DB_POOL_SIZE=5
-      - DB_MAX_OVERFLOW=100
-      - JWT_ISSUER=ArticlesApp
-      - JWT_SECRET_KEY=dev_secret
-      - JWT_ALGORITHM=HS256
-      - JWT_EXPIRATION_MINUTES=60
-      - ELASTICSEARCH_HOST=http://elasticsearch:9200
-      - ELASTICSEARCH_USER=None
-      - ELASTICSEARCH_PASSWORD=None
-      - ELASTICSEARCH_VERIFY_CERTS=False
+      - APP_NAME=${APP_NAME}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_ECHO=${DB_ECHO}
+      - DB_POOL_SIZE=${DB_POOL_SIZE}
+      - DB_MAX_OVERFLOW=${DB_MAX_OVERFLOW}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_EXPIRATION_MINUTES=${JWT_EXPIRATION_MINUTES}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+      - ELASTICSEARCH_USER=${ELASTICSEARCH_USER}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - ELASTICSEARCH_VERIFY_CERTS=${ELASTICSEARCH_VERIFY_CERTS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,7 +75,7 @@ networks:
     driver: bridge
 
 volumes:
-  elasticsearch-data:
-  articles_data:
+  elasticsearch_prod_data:
+  articles_prod_data:
 
 
